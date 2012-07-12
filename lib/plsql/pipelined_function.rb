@@ -66,10 +66,8 @@ module PLSQL
       @return = @return[0]
     end
 
-    def exec(*args, &block)
-      # use custom call syntax
-      call = PipelinedFunctionCall.new(self, args)
-      call.exec(&block)
+    def call_class
+      PipelinedFunctionCall
     end
   end
 end

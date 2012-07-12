@@ -542,7 +542,7 @@ describe "Parameter type mapping /" do
     
   end
 
-  describe "Procedrue with CLOB parameter and return value" do
+  describe "Procedure with CLOB parameter and return value" do
     before(:all) do
       plsql.connect! CONNECTION_PARAMS
       plsql.execute <<-SQL
@@ -2045,4 +2045,40 @@ describe "SYS.STANDARD procedures /" do
     plsql.nvl(nil, false).should == false
   end
 
+end
+
+unless ENV['NO_ACTIVERECORD']
+  describe "Logging using ActiveSupport::Notifications" do
+    before(:all) do
+      plsql.connect! CONNECTION_PARAMS
+    end
+
+    after(:all) do
+      plsql.logoff
+    end
+
+    let(:events) {events = []}
+
+    before(:each) do
+      ActiveSupport::Notifications.subscribe("procedure_call.plsql") do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+    end
+
+    after(:each) do
+      ActiveSupport::Notifications.unsubscribe("procedure_call.plsql")
+      events.clear
+    end
+
+    it "should send notifications on procedure executing" do
+      plsql.nvl(1, 1)
+      events.size.should == 1
+      events[0].payload[:sql].should =~ /DECLARE/
+    end
+
+    it "should catch exception information" do
+      plsql.nvl(1) rescue nil
+      error.should == events[0].payload[:error]
+    end
+  end
 end

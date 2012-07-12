@@ -261,9 +261,27 @@ module PLSQL
     end
 
     def exec(*args, &block)
-      call = ProcedureCall.new(self, args)
-      call.exec(&block)
+      if defined? ActiveSupport::Notifications
+        ActiveSupport::Notifications.instrument("procedure_call.plsql", :procedure => self, :arguments => args) do |payload|
+          call = call_class.new(self, args)
+          payload[:sql] = call.sql
+
+          begin
+            call.exec(&block)
+          rescue Exception => e
+            # save original error object (:exception key stores only class_name and message)
+            payload[:error] = e
+            raise e
+          end
+        end
+      else
+        call = call_class.new(self, args)
+        call.exec(&block)
+      end
     end
 
+    def call_class
+      ProcedureCall
+    end
   end
 end
