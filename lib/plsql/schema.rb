@@ -211,8 +211,7 @@ module PLSQL
                   (SELECT p.pipelined
                    FROM   all_procedures p
                    WHERE  p.owner = o.owner
-                   AND    p.object_name = o.object_name
-                   AND    p.object_type = 'FUNCTION')
+                   AND    p.object_name = o.object_name)
                  ELSE NULL
                  END) pipelined
           FROM   all_objects o
