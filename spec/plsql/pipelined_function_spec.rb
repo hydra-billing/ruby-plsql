@@ -87,8 +87,8 @@ describe "PipelinedFunction" do
 
   it "should iterate over result set if block given" do
     sys_objects = []
-    plsql.test_package.find_objects_by_name(:p_name => '%#') {|row| sys_objects << row}
+    plsql.test_package.find_objects_by_name(:p_name => 'V%') {|row| sys_objects << row}
     sys_objects.size.should == 10
-    sys_objects.map{|object| object['object_name'][-1..-1]}.uniq.should == %w(#)
+    sys_objects.map{|object| object['object_name'][0]}.uniq.should == %w(V)
   end
 end
