@@ -46,15 +46,15 @@ describe "Package" do
       END;
     SQL
   end
-  
+
   after(:all) do
     plsql.execute "DROP PACKAGE test_package"
     plsql.logoff
   end
-  
+
   before(:each) do
   end
-  
+
   it "should find existing package" do
     expect(PLSQL::Package.find(plsql, :test_package)).not_to be_nil
   end
@@ -123,7 +123,7 @@ describe "Package" do
     end
 
     context "who sets current_schema to match the package owner" do
-      before(:all) do
+      before(:each) do
         plsql.execute "ALTER SESSION set current_schema=#{DATABASE_USERS_AND_PASSWORDS[0][0]}"
       end
 
@@ -149,7 +149,7 @@ describe "Package" do
 end
 
 describe "Synonym to package" do
-  
+
   before(:all) do
     plsql.connection = get_connection
     plsql.execute <<-SQL
@@ -170,12 +170,12 @@ describe "Synonym to package" do
     SQL
     plsql.execute "CREATE SYNONYM test_pkg_synonym FOR hr.test_package"
   end
-  
+
   after(:all) do
     plsql.execute "DROP SYNONYM test_pkg_synonym" rescue nil
     plsql.logoff
   end
-  
+
   it "should find synonym to package" do
     expect(PLSQL::Package.find(plsql, :test_pkg_synonym)).not_to be_nil
   end
@@ -187,15 +187,15 @@ describe "Synonym to package" do
 end
 
 describe "Public synonym to package" do
-  
+
   before(:all) do
     plsql.connection = get_connection
   end
-  
+
   after(:all) do
     plsql.logoff
   end
-  
+
   it "should find public synonym to package" do
     expect(PLSQL::Package.find(plsql, :utl_encode)).not_to be_nil
   end

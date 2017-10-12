@@ -35,7 +35,7 @@ module PLSQL
     end
 
     # Set connection to OCI8 or JDBC connection:
-    # 
+    #
     #   plsql.connection = OCI8.new(database_user, database_password, database_name)
     #
     # or
@@ -90,7 +90,7 @@ module PLSQL
     # Current Oracle schema name
     def schema_name
       return nil unless connection
-      @schema_name ||= select_first("SELECT SYS_CONTEXT('userenv','session_user') FROM dual")[0]
+      @schema_name ||= select_first("SELECT SYS_CONTEXT('userenv','current_schema') FROM dual")[0]
     end
 
     # Default timezone to which database values will be converted - :utc or :local
@@ -131,9 +131,9 @@ module PLSQL
     end
 
     # Seet DBMS_OUTPUT buffer size (default is 20_000). Example:
-    # 
+    #
     #   plsql.dbms_output_buffer_size = 100_000
-    # 
+    #
     def dbms_output_buffer_size=(value)
       @dbms_output_buffer_size = value
     end
@@ -142,9 +142,9 @@ module PLSQL
     DBMS_OUTPUT_MAX_LINES = 2147483647
 
     # Specify IO stream where to log DBMS_OUTPUT from PL/SQL procedures. Example:
-    # 
+    #
     #   plsql.dbms_output_stream = STDOUT
-    # 
+    #
     def dbms_output_stream=(stream)
       @dbms_output_stream = stream
       if @dbms_output_stream.nil? && @connection

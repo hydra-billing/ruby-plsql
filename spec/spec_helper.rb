@@ -2,6 +2,7 @@ require "rubygems"
 require "bundler"
 Bundler.setup(:default, :development)
 require 'simplecov'
+require 'pry-byebug'
 
 SimpleCov.configure do
   load_profile 'root_filter'
@@ -123,4 +124,12 @@ class Hash
   def only(*whitelist)
     self.reject {|key, value| !whitelist.include?(key) }
   end unless method_defined?(:only)
+end
+
+if RUBY_PLATFORM =~ /darwin/ || ENV['HOPER_OCI_LOCALTIME'] || ENV['HOPER_OCI_BINDINGS']
+  OCI8::BindType::Mapping[Time] = OCI8::BindType::LocalTime
+  OCI8::BindType::Mapping[DateTime] = OCI8::BindType::LocalTime
+  OCI8::BindType::Mapping[:date] = OCI8::BindType::LocalTime
+  OCI8::BindType::Mapping[:timestamp] = OCI8::BindType::LocalTime
+  OCI8::BindType::Mapping[:timestamp_ltz] = OCI8::BindType::LocalTime
 end

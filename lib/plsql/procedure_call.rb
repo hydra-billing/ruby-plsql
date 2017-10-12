@@ -128,7 +128,7 @@ module PLSQL
         @bind_values[argument] = value.nil? ? nil : (value ? 1 : 0)
         @bind_metadata[argument] = argument_metadata.merge(:data_type => "NUMBER", :data_precision => 1)
         "l_#{argument}"
-      when 'UNDEFINED'
+      when 'UNDEFINED', 'OPAQUE/XMLTYPE'
         if argument_metadata[:type_name] == 'XMLTYPE'
           @declare_sql << "l_#{argument} XMLTYPE;\n"
           @assignment_sql << "l_#{argument} := XMLTYPE(:#{argument});\n" if not value.nil?
@@ -283,7 +283,7 @@ module PLSQL
           end
         end
         "l_#{argument} := " if is_return_value
-      when 'UNDEFINED'
+      when 'UNDEFINED', 'OPAQUE/XMLTYPE'
         if argument_metadata[:type_name] == 'XMLTYPE'
           @declare_sql << "l_#{argument} XMLTYPE;\n" if is_return_value
           bind_variable = :"o_#{argument}"
@@ -405,7 +405,7 @@ module PLSQL
       when 'PL/SQL BOOLEAN'
         numeric_value = @cursor[":o_#{argument}"]
         numeric_value.nil? ? nil : numeric_value == 1
-      when 'UNDEFINED'
+      when 'UNDEFINED', 'OPAQUE/XMLTYPE'
         if argument_metadata[:type_name] == 'XMLTYPE'
           @cursor[":o_#{argument}"]
         end
