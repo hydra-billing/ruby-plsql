@@ -277,11 +277,11 @@ module PLSQL
             # save original error object (:exception key stores only class_name and message)
             payload[:error] = e
             raise e
-            end
           end
+        end
       else
-          call = call_class.new(self, args)
-          call.exec(&block)
+        call = call_class.new(self, args)
+        call.exec(&block)
       end
     end
 

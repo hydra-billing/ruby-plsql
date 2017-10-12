@@ -2,6 +2,7 @@ module PLSQL
   # Call of any function or procedure
   # TODO: need to be refactored
   class SubprogramCall
+    attr_reader :sql
     def initialize(subprogram, args = [], options = {})
       @subprogram = subprogram
       @schema = @subprogram.schema
