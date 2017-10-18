@@ -83,8 +83,8 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<rspec_junit_formatter>.freeze, [">= 0"])
       s.add_development_dependency(%q<rake>.freeze, [">= 10.0"])
       s.add_development_dependency(%q<rspec>.freeze, ["~> 3.1"])
-      s.add_development_dependency(%q<activerecord>.freeze, ["< 4.3.0", ">= 3.2.3"])
-      s.add_development_dependency(%q<activerecord-oracle_enhanced-adapter>.freeze, ["< 1.7.0", ">= 1.4.1"])
+      s.add_development_dependency(%q<activerecord>.freeze, ["< 5.2.0", ">= 3.2.3"])
+      s.add_development_dependency(%q<activerecord-oracle_enhanced-adapter>.freeze, ["< 1.9.0", ">= 1.4.1"])
       s.add_development_dependency(%q<simplecov>.freeze, [">= 0"])
       s.add_development_dependency(%q<ruby-oci8>.freeze, ["~> 2.1"])
     else
@@ -92,8 +92,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<rspec_junit_formatter>.freeze, [">= 0"])
       s.add_dependency(%q<rake>.freeze, [">= 10.0"])
       s.add_dependency(%q<rspec>.freeze, ["~> 3.1"])
-      s.add_dependency(%q<activerecord>.freeze, ["< 4.3.0", ">= 3.2.3"])
-      s.add_dependency(%q<activerecord-oracle_enhanced-adapter>.freeze, ["< 1.7.0", ">= 1.4.1"])
+      s.add_dependency(%q<activerecord>.freeze, ["< 5.2.0", ">= 3.2.3"])
+      s.add_dependency(%q<activerecord-oracle_enhanced-adapter>.freeze, ["< 1.9.0", ">= 1.4.1"])
       s.add_dependency(%q<simplecov>.freeze, [">= 0"])
       s.add_dependency(%q<ruby-oci8>.freeze, ["~> 2.1"])
     end
@@ -102,10 +102,9 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<rspec_junit_formatter>.freeze, [">= 0"])
     s.add_dependency(%q<rake>.freeze, [">= 10.0"])
     s.add_dependency(%q<rspec>.freeze, ["~> 3.1"])
-    s.add_dependency(%q<activerecord>.freeze, ["< 4.3.0", ">= 3.2.3"])
-    s.add_dependency(%q<activerecord-oracle_enhanced-adapter>.freeze, ["< 1.7.0", ">= 1.4.1"])
+    s.add_dependency(%q<activerecord>.freeze, ["< 5.2.0", ">= 3.2.3"])
+    s.add_dependency(%q<activerecord-oracle_enhanced-adapter>.freeze, ["< 1.9.0", ">= 1.4.1"])
     s.add_dependency(%q<simplecov>.freeze, [">= 0"])
     s.add_dependency(%q<ruby-oci8>.freeze, ["~> 2.1"])
   end
 end
-
