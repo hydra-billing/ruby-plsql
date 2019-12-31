@@ -83,7 +83,35 @@ module PLSQL
       end
     end
 
-    def composite_type_content(type_subname)
+    def record_type_content(type_subname)
+      @schema.select_all(
+        "SELECT ta.attr_name,
+                ta.attr_no,
+                ta.attr_type_name,
+                ta.length,
+                ta.precision,
+                ta.scale,
+                ta.char_used,
+                ta.length,
+                ta.owner,
+                ta.attr_name
+         FROM  all_plsql_type_attrs    ta
+         WHERE ta.type_name = :type_subname", type_subname
+      ).inject({}) do |hash, el|
+        hash[el[0].downcase.to_sym] = {position: el[1],
+                                       data_type: el[2],
+                                       data_length: el[3],
+                                       data_precision: el[4],
+                                       data_scale: el[5],
+                                       char_used: el[6],
+                                       char_length: el[7],
+                                       type_owner: el[8],
+                                       type_name: el[9]}
+        hash
+      end
+    end
+
+    def table_type_content(type_subname)
       @schema.select_all(
         "SELECT ta.attr_name,
                 ta.attr_no,
@@ -96,7 +124,7 @@ module PLSQL
                 ta.owner,
                 ta.attr_name
          FROM all_plsql_coll_types   ACT
-         INNER JOIN all_plsql_type_attrs    ta
+         INNER JOIN all_plsql_type_attrs   ta
          on   ta.type_name = act.elem_type_name
          where act.type_name = :type_subname", type_subname
       ).inject({}) do |hash, el|
@@ -204,8 +232,14 @@ module PLSQL
           if argument_name.nil? && in_out == 'OUT'
             if composite_type?(data_type)
               @return[overload] ||= {}
-              @return[overload][:element] ||= {}
-              @return[overload][:element][:fields] = composite_type_content(type_subname)
+
+              if data_type == 'PL/SQL RECORD'
+                @return[overload] = argument_metadata
+                @return[overload][:fields] = record_type_content(type_subname)
+              else
+                @return[overload][:element] ||= {}
+                @return[overload][:element][:fields] = table_type_content(type_subname)
+              end
             else
               @return[overload] = argument_metadata
             end
