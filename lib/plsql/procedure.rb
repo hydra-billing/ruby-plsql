@@ -125,10 +125,38 @@ module PLSQL
                 ta.length,
                 ta.owner,
                 ta.attr_name
-         FROM all_plsql_coll_types   ACT
+         FROM all_plsql_coll_types   act
          INNER JOIN all_plsql_type_attrs   ta
          on   ta.type_name = act.elem_type_name
          where act.type_name = :type_subname", type_subname
+      ).inject({}) do |hash, el|
+        hash[el[0].downcase.to_sym] = {position: el[1],
+                                       data_type: el[2],
+                                       data_length: el[3],
+                                       data_precision: el[4],
+                                       data_scale: el[5],
+                                       char_used: el[6],
+                                       char_length: el[7],
+                                       type_owner: el[8],
+                                       type_name: el[9]}
+        hash
+      end
+    end
+
+    def global_table_type_content(type_name)
+      @schema.select_all(
+        "SELECT act.type_name,
+                1,
+                act.coll_type,
+                act.length,
+                act.precision,
+                act.scale,
+                act.char_used,
+                act.length,
+                act.owner,
+                act.type_name
+         FROM  all_coll_types    act
+         WHERE act.type_name = :type_name", type_name
       ).inject({}) do |hash, el|
         hash[el[0].downcase.to_sym] = {position: el[1],
                                        data_type: el[2],
@@ -235,18 +263,19 @@ module PLSQL
 
         if @schema.connection.database_version[0] >= 18
           if argument_name.nil? && in_out == 'OUT'
-            if composite_type?(data_type)
-              @return[overload] ||= {}
+            @return[overload] = argument_metadata
 
+            if composite_type?(data_type)
               if data_type == 'PL/SQL RECORD'
-                @return[overload] = argument_metadata
                 @return[overload][:fields] = record_type_content(type_subname)
               else
                 @return[overload][:element] ||= {}
-                @return[overload][:element][:fields] = table_type_content(type_subname)
+                @return[overload][:element][:fields] = if type_subname
+                                                         table_type_content(type_subname)
+                                                       else
+                                                         global_table_type_content(type_name)
+                                                       end
               end
-            else
-              @return[overload] = argument_metadata
             end
           # if parameter
           else
