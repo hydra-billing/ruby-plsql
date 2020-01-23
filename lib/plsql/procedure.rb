@@ -171,35 +171,6 @@ module PLSQL
       end
     end
 
-    def argument_content(type_name)
-      @schema.select_all(
-        "SELECT act.elem_type_name,
-                1,
-                act.elem_type_name,
-                act.length,
-                act.precision,
-                act.scale,
-                act.char_used,
-                act.length,
-                act.owner,
-                act.elem_type_name
-         FROM  all_plsql_coll_types    act
-         WHERE act.type_name = :type_name", type_name
-      ).inject({}) do |hash, el|
-         {
-           position: el[1],
-           data_type: el[2],
-           data_length: el[3],
-           data_precision: el[4],
-           data_scale: el[5],
-           char_used: el[6],
-           char_length: el[7],
-           type_owner: el[8],
-           type_name: el[9]
-        }
-      end
-    end
-
     # get procedure argument metadata from data dictionary
     def get_argument_metadata #:nodoc:
       @arguments = {}
@@ -308,19 +279,10 @@ module PLSQL
             end
           # if parameter
           else
-            # sometime there are empty IN arguments in all_arguments view for procedures without arguments (e.g. for DBMS_OUTPUT.DISABLE)
-            @arguments[overload][argument_name.downcase.to_sym] = argument_metadata if argument_name
-
-            if composite_type?(data_type)
-              if data_type == 'PL/SQL RECORD'
-                @arguments[overload][argument_name.downcase.to_sym][:fields] = record_type_content(type_subname)
-              else
-               @arguments[overload][argument_name.downcase.to_sym][:element] = if type_subname
-                                                                                 argument_content(type_subname)
-                                                                               else
-                                                                                 global_table_type_content(type_name)
-                                                                               end
-              end
+            # top level parameter
+            if data_level == 0
+              # sometime there are empty IN arguments in all_arguments view for procedures without arguments (e.g. for DBMS_OUTPUT.DISABLE)
+              @arguments[overload][argument_name.downcase.to_sym] = argument_metadata if argument_name
             end
           end
         else
