@@ -61,7 +61,7 @@ module PLSQL
   class PipelinedFunction < Procedure
     extend PipelinedFunctionClassMethods
 
-    def initialize(*)
+    def initialize(...)
       super
       @return = @return[0]
     end
