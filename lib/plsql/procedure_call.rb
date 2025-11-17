@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PLSQL
   class ProcedureCall < SubprogramCall #:nodoc:
 
@@ -37,10 +39,10 @@ module PLSQL
     private
 
     def construct_sql(args)
-      @declare_sql = ""
-      @assignment_sql = ""
-      @call_sql = ""
-      @return_sql = ""
+      @declare_sql = +""
+      @assignment_sql = +""
+      @call_sql = +""
+      @return_sql = +""
       @return_vars = []
       @return_vars_metadata = {}
 
@@ -106,7 +108,7 @@ module PLSQL
       end
       add_out_variables
 
-      @sql = @declare_sql.empty? ? "" : "DECLARE\n" << @declare_sql
+      @sql = @declare_sql.empty? ? +"" : +"DECLARE\n" << @declare_sql
       @sql << "BEGIN\n" << @assignment_sql << dbms_output_enable_sql << @call_sql << @return_sql << "END;\n"
     end
 
