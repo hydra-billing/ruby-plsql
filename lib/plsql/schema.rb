@@ -98,11 +98,7 @@ module PLSQL
       if @original_schema
         @original_schema.default_timezone
       else
-        @default_timezone ||
-          # Use ActiveRecord class default_timezone when ActiveRecord connection is used
-          (@connection && (ar_class = @connection.activerecord_class) && ar_class.default_timezone) ||
-          # default to local timezone
-          :local
+        @default_timezone || ActiveRecord.default_timezone || :local
       end
     end
 
