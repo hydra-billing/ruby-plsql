@@ -77,7 +77,7 @@ module PLSQL
         args[0][:self] = @self if @self
         # Add passed parameters to procedure call with parameter names
         @call_sql << args[0].map do |arg, value|
-          "#{arg} => " << add_argument(arg, value)
+          +"#{arg} => " << add_argument(arg, value)
         end.join(', ')
 
       # Sequential arguments
@@ -216,7 +216,7 @@ module PLSQL
         "l_#{argument} #{argument_metadata[:sql_type_name]};\n"
       else
         fields_metadata = argument_metadata[:fields]
-        sql = "TYPE t_#{argument} IS RECORD (\n"
+        sql = +"TYPE t_#{argument} IS RECORD (\n"
         sql << record_fields_sorted_by_position(fields_metadata).map do |field|
           metadata = fields_metadata[field]
           "#{field} #{type_to_sql(metadata)}"
@@ -231,7 +231,7 @@ module PLSQL
     end
 
     def record_assignment_sql_values_metadata(argument, argument_metadata, record_value)
-      sql = ""
+      sql = +""
       bind_values = {}
       bind_metadata = {}
       (record_value||{}).each do |key, value|
