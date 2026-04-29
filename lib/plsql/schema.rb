@@ -98,7 +98,22 @@ module PLSQL
       if @original_schema
         @original_schema.default_timezone
       else
-        @default_timezone || ActiveRecord.default_timezone || :local
+        @default_timezone || active_record_default_timezone || :local
+      end
+    end
+
+    def active_record_default_timezone
+      if defined?(::ActiveRecord) && ::ActiveRecord.respond_to?(:default_timezone)
+        timezone = ::ActiveRecord.default_timezone
+        return timezone if timezone
+      end
+
+      # HUPO still uses an older ActiveRecord API. Keep this fallback until HUPO
+      # upgrades to a newer Rails/ActiveRecord stack.
+      if @connection &&
+         (ar_class = @connection.activerecord_class) &&
+         ar_class.respond_to?(:default_timezone)
+        ar_class.default_timezone
       end
     end
 
