@@ -233,7 +233,7 @@ module PLSQL
     #   # => DELETE FROM employees WHERE employee_id = 1
     #
     def delete(sql_params='', *bindvars)
-      delete_sql = +"DELETE FROM \"#{@schema_name}\".\"#{@table_name}\" "
+      delete_sql = "DELETE FROM \"#{@schema_name}\".\"#{@table_name}\" "
       case sql_params
       when String
         delete_sql << sql_params
@@ -335,7 +335,7 @@ module PLSQL
         when :insert
           "INSERT INTO \"#{@table.schema_name}\".\"#{@table.table_name}\"(#{@argument_list[0].map{|a| a.to_s}.join(', ')}) VALUES (#{params_string});\n"
         when :update
-          update_sql = +"UPDATE \"#{@table.schema_name}\".\"#{@table.table_name}\" SET #{@set_sqls.join(', ')}"
+          update_sql = "UPDATE \"#{@table.schema_name}\".\"#{@table.table_name}\" SET #{@set_sqls.join(', ')}"
           update_sql << " WHERE #{@where_sqls.join(' AND ')}" unless @where_sqls.empty?
           update_sql << ";\n"
           update_sql
