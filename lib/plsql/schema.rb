@@ -100,7 +100,7 @@ module PLSQL
       else
         @default_timezone ||
           # Use ActiveRecord class default_timezone when ActiveRecord connection is used
-          (@connection && (ar_class = @connection.activerecord_class) && ar_class.default_timezone) ||
+          (@connection && (ar_class = @connection.activerecord_class) && (defined?(ActiveRecord) && ActiveRecord.respond_to?(:default_timezone) ? ActiveRecord.default_timezone : ar_class.default_timezone)) ||
           # default to local timezone
           :local
       end
@@ -253,7 +253,7 @@ module PLSQL
     end
 
     def _errors(object_schema_name, object_name, object_type)
-      result = ""
+      result = +""
       previous_line = 0
       select_all(
         "SELECT e.line, e.position, e.text error_text, s.text source_text

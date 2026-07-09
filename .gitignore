@@ -10,3 +10,5 @@ tmp
 sqlnet.log
 Gemfile.lock
 .idea
+
+.tool-versions

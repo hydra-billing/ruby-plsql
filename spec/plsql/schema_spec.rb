@@ -201,9 +201,24 @@ describe "ActiveRecord connection" do
     plsql.schema_name.should == 'HR'
   end
 
-  it "should use ActiveRecord::Base.default_timezone as default" do
-    ActiveRecord::Base.default_timezone = :utc
+  it "should use ActiveRecord class default_timezone as default" do
+    tz_method = if defined?(ActiveRecord) && ActiveRecord.respond_to?(:default_timezone)
+                  ActiveRecord
+                else
+                  ActiveRecord::Base
+                end
+    tz_method.default_timezone = :utc
     plsql.default_timezone.should == :utc
+  end
+
+  it "should prefer ActiveRecord.default_timezone over ActiveRecord::Base.default_timezone on Rails 7.2+" do
+    if defined?(ActiveRecord) && ActiveRecord.respond_to?(:default_timezone)
+      ActiveRecord.default_timezone = :local
+      ActiveRecord::Base.default_timezone = :utc rescue nil
+      plsql.default_timezone.should == :local
+    else
+      # On pre-7.2 Rails, ActiveRecord.default_timezone is not available; skip this test.
+    end
   end
 
   it "should have the same connection as default schema" do

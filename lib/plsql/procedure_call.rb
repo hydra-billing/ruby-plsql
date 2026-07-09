@@ -37,7 +37,7 @@ module PLSQL
 
     def construct_sql(arguments)
       prepare_sql_construction
-      call_sql = ""
+      call_sql = +""
       call_sql << add_return if return_metadata
 
       # construct procedure call if procedure name is available

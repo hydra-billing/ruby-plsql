@@ -193,6 +193,8 @@ module PLSQL
       # if procedure is without arguments then create default empty argument list for default overload
       @arguments[0] = {} if @arguments.keys.empty?
 
+      enrich_composite_metadata_from_plsql_views
+
       construct_argument_list_for_overloads
     end
 
@@ -207,7 +209,7 @@ module PLSQL
     def ensure_tmp_tables_created(overload) #:nodoc:
       return if @tmp_tables_created.nil? || @tmp_tables_created[overload]
       @tmp_table_names[overload] && @tmp_table_names[overload].each do |table_name, argument_metadata|
-        sql = "CREATE GLOBAL TEMPORARY TABLE #{table_name} (\n"
+        sql = +"CREATE GLOBAL TEMPORARY TABLE #{table_name} (\n"
           element_metadata = argument_metadata[:element]
           case element_metadata[:data_type]
           when 'PL/SQL RECORD'
@@ -236,6 +238,122 @@ module PLSQL
     PLSQL_COLLECTION_TYPES = ['PL/SQL TABLE', 'TABLE', 'VARRAY'].freeze
     def collection_type?(data_type) #:nodoc:
       PLSQL_COLLECTION_TYPES.include? data_type
+    end
+
+    # KNOWN_SQL_TYPES: element type names that are scalar SQL data types (not composite).
+    # Used by enrich_composite_metadata_from_plsql_views to distinguish scalar collections
+    # (e.g. TABLE OF VARCHAR2) from record/object collections (e.g. TABLE OF T_RECORD).
+    KNOWN_SQL_TYPES = %w[
+      NUMBER VARCHAR VARCHAR2 NVARCHAR2 NCHAR CHAR CLOB BLOB BFILE RAW
+      INTEGER INT SMALLINT FLOAT DOUBLE PRECISION BINARY_FLOAT BINARY_DOUBLE
+      DATE TIMESTAMP LONG LONG RAW BOOLEAN
+    ].freeze
+
+    # Oracle 18c+ changed ALL_ARGUMENTS behavior: composite type arguments/returns appear
+    # as a single row at data_level=0; nested rows (data_level>0) are no longer present.
+    # This method enriches @return metadata by querying ALL_PLSQL_COLL_TYPES and
+    # ALL_PLSQL_TYPE_ATTRS to reconstruct the missing :element and :fields structure.
+    def enrich_composite_metadata_from_plsql_views #:nodoc:
+      @return.each_key do |overload|
+        return_meta = @return[overload]
+        next unless return_meta
+        next unless collection_type?(return_meta[:data_type])
+        next unless return_meta[:element].nil?
+
+        type_owner = return_meta[:type_owner] || @schema_name
+
+        if return_meta[:type_subname]
+          # Package-local type: TYPE_NAME=package, TYPE_SUBNAME=local type
+          type_name = return_meta[:type_subname]
+          coll_package_name = return_meta[:type_name]
+        else
+          # Schema-level type
+          type_name = return_meta[:type_name]
+          coll_package_name = nil
+        end
+        next unless type_name
+
+        if coll_package_name
+          coll_row = @schema.select_first(
+            "SELECT coll_type, elem_type_name, elem_type_owner, elem_type_package, " \
+            "length, precision, scale " \
+            "FROM all_plsql_coll_types " \
+            "WHERE type_name = :type_name AND owner = :owner AND package_name = :package_name",
+            type_name, type_owner, coll_package_name
+          )
+        else
+          coll_row = @schema.select_first(
+            "SELECT coll_type, elem_type_name, elem_type_owner, NULL AS elem_type_package, " \
+            "length, precision, scale " \
+            "FROM all_plsql_coll_types " \
+            "WHERE type_name = :type_name AND owner = :owner",
+            type_name, type_owner
+          )
+        end
+        next unless coll_row
+
+        _coll_type, elem_type_name, elem_type_owner, elem_type_package,
+          elem_length, elem_precision, elem_scale = coll_row
+
+        is_simple_type = KNOWN_SQL_TYPES.include?(elem_type_name)
+        data_type = is_simple_type ? elem_type_name : 'PL/SQL RECORD'
+
+        element_metadata = {
+          data_type: data_type,
+          type_name: elem_type_name,
+          type_owner: elem_type_owner,
+          data_length: elem_length && elem_length.to_i,
+          data_precision: elem_precision && elem_precision.to_i,
+          data_scale: elem_scale && elem_scale.to_i,
+          position: nil,
+          in_out: return_meta[:in_out],
+        }
+
+        unless is_simple_type
+          element_metadata[:fields] = {}
+          fetch_plsql_type_fields(elem_type_name, elem_type_owner || @schema_name,
+            element_metadata[:fields], package_name: elem_type_package)
+        end
+
+        return_meta[:element] = element_metadata
+      end
+    end
+
+    # Fetch field definitions from ALL_PLSQL_TYPE_ATTRS for a record/object type.
+    # When package_name: is provided, queries package-local type attrs.
+    def fetch_plsql_type_fields(type_name, type_owner, fields_hash, package_name: nil) #:nodoc:
+      if package_name
+        rows = @schema.select_all(
+          "SELECT attr_name, attr_type_name, attr_no, " \
+          "length, precision, scale, character_set_name " \
+          "FROM all_plsql_type_attrs " \
+          "WHERE type_name = :type_name AND owner = :owner AND package_name = :package_name " \
+          "ORDER BY attr_no",
+          type_name, type_owner, package_name
+        )
+      else
+        rows = @schema.select_all(
+          "SELECT attr_name, attr_type_name, attr_no, " \
+          "length, precision, scale, character_set_name " \
+          "FROM all_plsql_type_attrs " \
+          "WHERE type_name = :type_name AND owner = :owner " \
+          "ORDER BY attr_no",
+          type_name, type_owner
+        )
+      end
+      rows.each do |row|
+        attr_name, attr_type_name, attr_no,
+          length_val, precision, scale, _char_set_name = row
+
+        fields_hash[attr_name.downcase.to_sym] = {
+          data_type: attr_type_name,
+          position: attr_no && attr_no.to_i,
+          data_length: length_val && length_val.to_i,
+          data_precision: precision && precision.to_i,
+          data_scale: scale && scale.to_i,
+          in_out: nil,
+        }
+      end
     end
 
     def overloaded? #:nodoc:

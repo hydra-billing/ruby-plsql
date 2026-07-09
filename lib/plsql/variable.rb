@@ -128,7 +128,7 @@ module PLSQL
       end
 
       def call_sql(params_string)
-        sql = (schema_name = @variable.schema_name) ? "#{schema_name}." : ""
+        sql = (schema_name = @variable.schema_name) ? "#{schema_name}." : +""
         sql << "#{@variable.package_name}.#{@variable.variable_name}"
         case @operation
         when :get

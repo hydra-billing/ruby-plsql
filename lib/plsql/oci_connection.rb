@@ -174,12 +174,12 @@ module PLSQL
     def ruby_value_to_ora_value(value, type=nil)
       type ||= value.class
       case type.to_s.to_sym
-      when :Fixnum, :BigDecimal, :String
+      when :Integer, :BigDecimal, :String
         value
       when :OraNumber
         # pass parameters as OraNumber to avoid rounding errors
         case value
-        when Bignum
+        when Integer
           OraNumber.new(value.to_s)
         when BigDecimal
           OraNumber.new(value.to_s('F'))
@@ -299,16 +299,19 @@ module PLSQL
     def raw_oci_connection
       if raw_connection.is_a? OCI8
         raw_connection
-      # ActiveRecord Oracle enhanced adapter puts OCI8EnhancedAutoRecover wrapper around OCI8
-      # in this case we need to pass original OCI8 connection
+      # ActiveRecord Oracle enhanced adapter wraps OCI8 in OCI8EnhancedAutoRecover.
+      # Current oracle-enhanced stores the bare OCI8 in @raw_connection.
+      # Legacy oracle-enhanced stored it in @connection.
+      # Support both for safe unwrapping.
       else
-        raw_connection.instance_variable_get(:@connection)
+        raw_connection.instance_variable_get(:@raw_connection) ||
+          raw_connection.instance_variable_get(:@connection)
       end
     end
     
     def ora_number_to_ruby_number(num)
       # return BigDecimal instead of Float to avoid rounding errors
-      num == (num_to_i = num.to_i) ? num_to_i : (num.is_a?(BigDecimal) ? num : BigDecimal.new(num.to_s))
+      num == (num_to_i = num.to_i) ? num_to_i : (num.is_a?(BigDecimal) ? num : BigDecimal(num.to_s))
     end
     
     def ora_date_to_ruby_date(val)
