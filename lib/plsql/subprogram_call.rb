@@ -16,10 +16,10 @@ module PLSQL
     private
 
     def prepare_sql_construction
-      @declare_sql = ""
-      @assignment_sql = ""
+      @declare_sql = +""
+      @assignment_sql = +""
       @binds = {:values => {}, :metadata => {}}
-      @return = {:sql => '', :variables => [], :metadata => {}}
+      @return = {:sql => +'', :variables => [], :metadata => {}}
     end
 
     def get_overload_from_arguments_list(args)
@@ -214,7 +214,7 @@ module PLSQL
     ## Next methods adds declaration in DECLARE block
 
     def add_variable_declaration(name, type, options = {})
-      variable_name = options[:output_variable] ? 'o_' : 'l_'
+      variable_name = options[:output_variable] ? +'o_' : +'l_'
       variable_name << name.to_s << ' ' << type.to_s.upcase
       variable_name << ' := '<< options[:value].to_s if options[:value]
       variable_name << ";\n"
@@ -382,7 +382,7 @@ module PLSQL
     end
 
     def record_assignment_sql_values_metadata(argument, argument_metadata, record_value)
-      sql = ""
+      sql = +""
       bind_values = {}
       bind_metadata = {}
       (record_value||{}).each do |key, value|

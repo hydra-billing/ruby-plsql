@@ -13,3 +13,4 @@ Gemfile.lock
 .vagrant
 .idea
 spec/support/custom_config.rb
+.tool-versions
