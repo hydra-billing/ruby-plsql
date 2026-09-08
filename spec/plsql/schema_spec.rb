@@ -210,8 +210,8 @@ describe "ActiveRecord connection" do
     expect(plsql.schema_name).to eq('HR')
   end
 
-  it "should use ActiveRecord::Base.default_timezone as default" do
-    ActiveRecord::Base.default_timezone = :utc
+  it "should use ActiveRecord.default_timezone as default" do
+    ActiveRecord.default_timezone = :utc
     expect(plsql.default_timezone).to eq(:utc)
   end
 

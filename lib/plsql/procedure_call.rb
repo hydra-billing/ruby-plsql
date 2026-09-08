@@ -231,7 +231,7 @@ module PLSQL
     end
 
     def record_assignment_sql_values_metadata(argument, argument_metadata, record_value)
-      sql = ""
+      sql = +""
       bind_values = {}
       bind_metadata = {}
       (record_value||{}).each do |key, value|
