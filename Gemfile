@@ -1,4 +1,4 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
 group :development do
   gem 'juwelier', '~> 2.0'
@@ -11,12 +11,12 @@ group :test, :development do
   gem 'rspec', '~> 3.1'
 
   unless ENV['NO_ACTIVERECORD']
-    gem 'activerecord', '>= 3.2.3', '< 5.2.0'
-    gem 'activerecord-oracle_enhanced-adapter', '>= 1.4.1', '< 1.9.0'
+    gem 'activerecord', '>= 7.0', '< 8.1'
+    gem 'activerecord-oracle_enhanced-adapter', '>= 7.0', '< 8.1'
     gem 'simplecov', '>= 0'
   end
 
   platforms :ruby, :mswin, :mingw do
-    gem 'ruby-oci8', '~> 2.1'
+    gem 'ruby-oci8', '~> 2.2'
   end
 end
